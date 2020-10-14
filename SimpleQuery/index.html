@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>查水表·SimpleQuery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A Simple Console Website For PocketMine">
+    <meta name="author" content="MUedsa">   
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/messenger.css" rel="stylesheet">
+    <link href="css/messenger-theme-future.css" rel="stylesheet">
+    <script type="text/javascript">
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="#">SimpleQuery</a>
+                    </div>
+                    <div id="navbar" class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav">
+                            <li class="active"><a href="#">开门,查水表!</a></li>
+                            <li><a href="http://console.coding.io">SimpleConsole</a></li>
+                            <li><a href="#">关于·ABOUT</a></li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a href="http://www.cattery.cn" target="_blank">EDSA插件站</a></li>
+                        </ul>
+                    </div><!--/.nav-collapse -->
+                </div><!--/.container-fluid -->
+      </nav>
+      <div class="box">
+          <div class="col-lg-6">
+            <form class="form-horizontal" role="form" onsubmit="">
+              <div class="form-group">
+                <label for="ip" class="col-sm-2 control-label">IP</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="ip" placeholder="0.0.0.0">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="port" class="col-sm-2 control-label">端口</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="port" placeholder="19132">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                  <button type="submit" class="btn btn-default" id="btn1">登录</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="col-lg-6">
+            <h1>Welcome...</h1>
+            <h3>Simple Query · 查水表</h3>
+            <p>基于Query协议的超级查水表功能</p>
+            <p>IP框必须输入IP,不能使用域名</P>
+            <p>查不到服务器水费?多试几次!</p>
+          </div>
+      </div>
+    </div>
+      <div id="ServerStatus" class="container">
+        
+      </div>
+    <script src="js/jquery/1.11.2/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="js/messenger.js"></script>
+    <script type="text/javascript">
+        Messenger.options = {
+          extraClasses: 'messenger-fixed messenger-on-bottom messenger-on-right',
+          theme: 'future'
+        };
+        $("#btn1").click(function(tijiao){
+          tijiao.preventDefault();
+          var ip = $("#ip").val();
+          var port = $("#port").val();
+          if (isIP(ip) && !isNaN(port)) {
+            getStatus(ip,port);
+          }else{
+            Messenger().post({
+              message: '请输入正确的IP,端口',
+              type: 'error',
+              showCloseButton: false
+            });
+          }
+        });
+
+        function isIP(ip){
+          var reSpaceCheck = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/;
+          if (reSpaceCheck.test(ip))
+          {
+            ip.match(reSpaceCheck);
+            if (RegExp.$1<=255&&RegExp.$1>=0
+              &&RegExp.$2<=255&&RegExp.$2>=0
+              &&RegExp.$3<=255&&RegExp.$3>=0
+              &&RegExp.$4<=255&&RegExp.$4>=0)
+            {
+              return true; 
+            }else
+            {
+              return false;
+            }
+          }else
+          {
+            return false;
+          }
+        }
+        function getStatus(ip,port){
+          $.post("/ajax/Query.php", { "ip": ip, "port": port },function(result,status){
+            if(status == 'success'){
+              if(result.status == 0){
+                Messenger().post({
+                  message: '未知错误',
+                  type: 'error',
+                  showCloseButton: false
+                });
+              }else{
+                $("#ServerStatus").html(result.data);
+              }
+            }else{
+              Messenger().post({
+                message: '登录超时!',
+                type: 'error',
+                showCloseButton: false
+              });
+            }
+          }, "json");
+        }
+    </script>
+  </body>
+</html>

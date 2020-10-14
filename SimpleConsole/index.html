@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>登录·SimpleConsole</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A Simple Console Website For PocketMine">
+    <meta name="author" content="MUedsa">   
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/messenger.css" rel="stylesheet">
+    <link href="css/messenger-theme-future.css" rel="stylesheet">
+    <script type="text/javascript">
+      var ip_start = document.cookie.indexOf("ip=");
+      var port_start = document.cookie.indexOf("port=");
+      var password_start = document.cookie.indexOf("password=");
+      if (ip_start != -1 && port_start != -1 && password_start != -1) {
+        window.location.href="console.html";
+      }
+    </script>
+  </head>
+  <body>
+    <nav class="navbar navbar-default">
+    </nav>
+    <div class="container">
+      <div class="box">
+          <div class="col-lg-6">
+            <form class="form-horizontal" role="form" onsubmit="">
+              <div class="form-group">
+                <label for="ip" class="col-sm-2 control-label">IP</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="ip" placeholder="0.0.0.0">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="port" class="col-sm-2 control-label">端口</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="port" placeholder="19132">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="password" class="col-sm-2 control-label">Rcon密码</label>
+                <div class="col-sm-10">
+                  <input type="password" class="form-control" id="password" placeholder="Password">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" id="checkbox"> Remember me
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                  <button type="submit" class="btn btn-default" id="btn1">登录</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="col-lg-6">
+            <h1>Welcome...</h1>
+            <h3>Simpel Console · 登录</h3>
+            <p>基于Rcon协议的控制面板</p>
+            <p>只能向PocketMine发送命令</P>
+            <p>登录IP必须为IP,不能使用域名</P>
+            <p>因为进服需要UDP协议,Rcon需要TCP协议,所以请确认你的端口映射同时支持这2种协议</P>
+            <p>Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a></p>
+          </div>
+      </div>
+    </div>
+    <script src="js/jquery/1.11.2/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="js/messenger.js"></script>
+    <script type="text/javascript">
+        Messenger.options = {
+          extraClasses: 'messenger-fixed messenger-on-bottom messenger-on-right',
+          theme: 'future'
+        };
+        $("#btn1").click(function(tijiao){
+          tijiao.preventDefault();
+          var ip = $("#ip").val();
+          var port = $("#port").val();
+          var password = $("#password").val();
+          if (isIP(ip) && !isNaN(port)) {
+            Login(ip,port,password);
+          }else{
+            Messenger().post({
+              message: '请输入正确的IP,端口',
+              type: 'error',
+              showCloseButton: false
+            });
+          }
+        });
+
+        function isIP(ip){
+          var reSpaceCheck = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/;
+          if (reSpaceCheck.test(ip))
+          {
+            ip.match(reSpaceCheck);
+            if (RegExp.$1<=255&&RegExp.$1>=0
+              &&RegExp.$2<=255&&RegExp.$2>=0
+              &&RegExp.$3<=255&&RegExp.$3>=0
+              &&RegExp.$4<=255&&RegExp.$4>=0)
+            {
+              return true; 
+            }else
+            {
+              return false;
+            }
+          }else
+          {
+            return false;
+          }
+        }
+        function Login(ip,port,password){
+          var data = "ip=" + ip + "&port=" + port + "&password=" + password;
+          $.get("/ajax/Rcon.php?type=1&" + data, function(result,status){
+            if(status == 'success'){
+              if(result.status == 0){
+                switch(result.data){
+                  case "ParameterError":
+                    Messenger().post({
+                      message: '请输入正确的IP,端口,密码',
+                      type: 'error',
+                      showCloseButton: false
+                    });
+                    break;
+                  case "startSocketFalse":
+                    Messenger().post({
+                      message: 'Socket连接失败',
+                      type: 'error',
+                      showCloseButton: false
+                    });
+                    break;
+                  case "LoginFalse":
+                    Messenger().post({
+                      message: '登录失败,密码错误',
+                      type: 'error',
+                      showCloseButton: false
+                    });
+                    break;
+                  case "unkownError":
+                  default:
+                    Messenger().post({
+                      message: '未知错误',
+                      type: 'error',
+                      showCloseButton: false
+                    });
+                    break;
+                }
+              }else{
+                if ($("#checkbox").val() == "on") {
+                  setCookie("ip",ip,"d30");
+                  setCookie("port",port,"d30");
+                  setCookie("password",password,"d30");
+                }else{
+                  setCookie("ip",ip,"h1");
+                  setCookie("port",port,"h1");
+                  setCookie("password",password,"h1");
+                }
+                Messenger().post("登录成功!");
+                window.setTimeout("window.location='console.html'",700);
+              }
+            }else{
+              Messenger().post({
+                message: '登录超时!',
+                type: 'error',
+                showCloseButton: false
+              });
+            }
+          }, "json");
+        }
+        function setCookie(name,value,time){
+          var strsec = getsec(time);
+          var exp = new Date();
+          exp.setTime(exp.getTime() + strsec*1);
+          document.cookie = name + "="+ escape (value) + ";expires=" + exp.toGMTString();
+        }
+        function getsec(str){
+          var str1=str.substring(1,str.length)*1;
+          var str2=str.substring(0,1);
+          if (str2=="s"){
+            return str1*1000;
+          }
+          else if(str2=="h"){
+            return str1*60*60*1000;
+          }
+          else if (str2=="d"){
+            return str1*24*60*60*1000;
+          }
+        }
+    </script>
+    
+  </body>
+</html>

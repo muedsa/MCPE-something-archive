@@ -1,0 +1,22 @@
+---
+"349:0":
+- effect: 1
+  amplifier: 1
+  duration: 20
+"349:1":
+- effect: 8
+  amplifier: 5
+  duration: 20
+"349:2":
+- effect: 13
+  amplifier: 1
+  duration: 20
+"350:0":
+- effect: 1
+  amplifier: 1
+  duration: 40
+"350:1":
+- effect: 8
+  amplifier: 5
+  duration: 40
+...

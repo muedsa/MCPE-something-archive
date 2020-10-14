@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="A Simple Console Website For PocketMine">
+        <meta name="author" content="MUedsa">
+        <title>SimpleConsole</title>
+
+        <!-- Bootstrap core CSS -->
+        <link href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/messenger.css" rel="stylesheet">
+        <link href="css/messenger-theme-future.css" rel="stylesheet">
+        <script src="js/jquery/1.11.2/jquery.min.js"></script>
+        <script src="js/messenger.js"></script>
+        <script type="text/javascript">
+            Messenger.options = {
+                extraClasses: 'messenger-fixed messenger-on-bottom messenger-on-right',
+                theme: 'future'
+            }
+            function checkcookie(){
+                var ip_start = document.cookie.indexOf("ip=");
+                var port_start = document.cookie.indexOf("port=");
+                var password_start = document.cookie.indexOf("password=");
+                if (ip_start == -1 && port_start == -1 && password_start == -1) {
+                    Messenger().post({
+                        message: '登录超时!',
+                        type: 'error',
+                        showCloseButton: false
+                    });
+                    window.setTimeout("window.location='index.html'",700);
+                };
+            }
+            checkcookie();
+        </script>
+        
+    </head>
+
+    <body>
+
+        <div class="container">
+
+            <!-- Static navbar -->
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="#">SimpleConsole</a>
+                    </div>
+                    <div id="navbar" class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav">
+                            <li class="active"><a href="#">控制台·Console</a></li>
+                            <li><a href="http://query.coding.io">SimpleQuery</a></li>
+                            <li><a href="#">关于·ABOUT</a></li>
+                            <li><a href="http://www.cattery.cn" target="_blank">EDSA插件站</a></li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a id="logout">退出</a></li>
+                        </ul>
+                    </div><!--/.nav-collapse -->
+                </div><!--/.container-fluid -->
+            </nav>
+
+            <div class="jumbotron">
+                <p>服务器 控制台</p>
+                <p>
+<pre class="panel-body" style="min-height:300px;">
+[SimpleConsole] 尝试连接服务器......
+[SimpleConsole] 连接成功!
+[SimpleConsole] 现在你可以向服务器发送命令了!
+</pre>
+                </p>
+                <p>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="cmd">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" id="btn2">Go!</button>
+                                </span>
+                            </div><!-- /input-group -->
+                            </div><!-- /.col-lg-12 -->
+                    </div><!-- /.row --> 
+                </p>
+            </div>
+
+        </div> <!-- /container -->
+
+
+        <!-- Bootstrap core JavaScript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        
+        <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+        
+        <script type="text/javascript">
+            $(document).ready(function(){
+                $("#btn2").click(function(){
+                    checkcookie();
+                    var cmd = $("#cmd").val();
+                    if(cmd != ''){
+                        RunCMD(cmd);
+                    }
+                })
+            })
+            $(document).ready(function(){
+                $("#logout").click(function(){
+                    delCookie("ip");
+                    delCookie("port");
+                    delCookie("password");
+                    Messenger().post("安全退出!");
+                    window.setTimeout("window.location='index.html'",700);
+                })
+            })
+            $("#cmd").keypress(function(event) {
+                if ( event.which == 13 ) {
+                    checkcookie();
+                    var cmd = $("#cmd").val();
+                    if(cmd != ''){
+                        RunCMD(cmd);
+                    }
+                }
+            });
+            function RunCMD(cmd){
+                var data = "ip=" + getCookie("ip") + "&port=" + getCookie("port") + "&password=" + getCookie("password") + "&cmd=" + cmd;
+                $.get("/ajax/Rcon.php?type=2&" + data, function(result,status){
+                    if(status == 'success'){
+                        if(result.status == 0){
+                            switch(result.data){
+                                case "ParameterError":
+                                    Messenger().post({
+                                        message: '参数错误!',
+                                        type: 'error',
+                                        showCloseButton: false
+                                    });
+                                    break;
+                                case "startSocketFalse":
+                                    Messenger().post({
+                                        message: "Socket连接失败!\n请查看服务器是否关闭!",
+                                        type: 'error',
+                                        showCloseButton: false
+                                    });
+                                    break;
+                                case "LoginFalse":
+                                    Messenger().post({
+                                        message: "登录失败,密码错误!\n请退出控制台,重新登录!",
+                                        type: 'error',
+                                        showCloseButton: false
+                                    });
+                                    break;
+                                case "unkownError":
+                                default:
+                                    Messenger().post({
+                                        message: '未知错误发生!',
+                                        type: 'error',
+                                        showCloseButton: false
+                                    });
+                                    break;
+                            }
+                        }else{
+                            $("#cmd").val('');
+                            $("pre").append("[发送命令] " + cmd + "\n[服务器反馈] " + result.data + "\n");
+                        }
+                    }else{
+                        Messenger().post({
+                            message: "提交超时!\n请退出控制台,重新登录!",
+                            type: 'error',
+                            showCloseButton: false
+                        });
+                    }
+                }, "json");
+            }
+            function delCookie(name) 
+            { 
+                var exp = new Date(); 
+                exp.setTime(exp.getTime() - 1); 
+                var cval=getCookie(name); 
+                if(cval!=null) 
+                document.cookie= name + "="+cval+";expires="+exp.toGMTString(); 
+            }
+            function getCookie(objName){//获取指定名称的cookie的值
+                var arrStr = document.cookie.split("; ");
+                for(var i = 0;i < arrStr.length;i ++){
+                    var temp = arrStr[i].split("=");
+                    if(temp[0] == objName) return unescape(temp[1]);
+                } 
+            }
+        </script>
+    </body>
+</html>

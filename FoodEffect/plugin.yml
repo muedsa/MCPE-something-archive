@@ -1,0 +1,9 @@
+name: FoodEffect
+main: FoodEffect\MainClass
+version: 1.0.0
+api: [1.12.0]
+
+load: POSTWORLD
+author: MUedsa
+description: Get effects when eat food
+website: http://www.cattery.cn

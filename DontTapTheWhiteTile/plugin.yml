@@ -1,0 +1,18 @@
+name: DontTapTheWhiteTile
+main: DontTapTheWhiteTile\DontTapTheWhiteTile
+version: 0.2.0
+api: [1.0.0]
+
+load: POSTWORLD
+author: MUedsa
+description: Dont Tap The White Tile - Mini Game
+website: http://www.cattery.cn
+commands:
+ dttwt:
+  description: DontTapTheWhiteTile Command
+  usage: "Usage: /dttwt <set/del/list> <name>"
+  permission: donttapthewhitetile.command.dttwt
+permissions:
+ donttapthewhitetile.command.dttwt:
+  description: "CMD: /dttwt"
+  default: true
